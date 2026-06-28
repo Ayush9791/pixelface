@@ -1,0 +1,925 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans, 'Inter', sans-serif); }
+
+  .pf-root {
+    min-height: 600px;
+    background: var(--surface-0);
+    padding: 2rem 1.5rem;
+  }
+
+  .pf-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2rem;
+  }
+
+  .pf-logo {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #7F77DD, #534AB7);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .pf-logo svg { width: 20px; height: 20px; }
+
+  .pf-title { font-size: 20px; font-weight: 500; color: var(--text-primary); letter-spacing: -0.3px; }
+  .pf-sub { font-size: 13px; color: var(--text-muted); margin-top: 1px; }
+
+  .pf-layout {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  .pf-left { display: flex; flex-direction: column; gap: 1rem; }
+
+  .pf-canvas-wrap {
+    background: var(--surface-2);
+    border: 0.5px solid var(--border);
+    border-radius: 16px;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    min-height: 280px;
+  }
+
+  .pf-canvas-wrap canvas {
+    border-radius: 12px;
+  }
+
+  .pf-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-muted);
+    font-size: 13px;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .pf-empty-icon {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--surface-1);
+    border: 0.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .pf-loader {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: var(--text-secondary);
+    font-size: 13px;
+  }
+
+  .pf-spinner {
+    width: 32px; height: 32px;
+    border: 2px solid var(--border);
+    border-top-color: #7F77DD;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .pf-actions-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .pf-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 14px;
+    height: 36px;
+    border: 0.5px solid var(--border-strong);
+    border-radius: var(--radius, 8px);
+    background: transparent;
+    color: var(--text-primary);
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.15s;
+  }
+
+  .pf-btn:hover { background: var(--surface-1); }
+  .pf-btn:active { transform: scale(0.98); }
+  .pf-btn.primary {
+    background: #534AB7;
+    border-color: #534AB7;
+    color: #fff;
+    flex: 1;
+  }
+  .pf-btn.primary:hover { background: #3C3489; border-color: #3C3489; }
+  .pf-btn.primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  .pf-right { display: flex; flex-direction: column; gap: 1rem; }
+
+  .pf-card {
+    background: var(--surface-2);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+  }
+
+  .pf-card-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+  }
+
+  .pf-prompt-wrap {
+    position: relative;
+  }
+
+  .pf-prompt {
+    width: 100%;
+    min-height: 80px;
+    padding: 10px 12px;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius, 8px);
+    background: var(--surface-1);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-family: inherit;
+    resize: none;
+    line-height: 1.5;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+
+  .pf-prompt:focus { border-color: #7F77DD; }
+  .pf-prompt::placeholder { color: var(--text-muted); }
+
+  .pf-styles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .pf-style-btn {
+    padding: 7px 8px;
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface-1);
+    color: var(--text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+
+  .pf-style-btn:hover { border-color: var(--border-strong); color: var(--text-primary); }
+  .pf-style-btn.active { border-color: #7F77DD; color: #534AB7; background: #EEEDFE; }
+
+  .pf-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .pf-tag {
+    padding: 4px 10px;
+    border: 0.5px solid var(--border);
+    border-radius: 20px;
+    background: var(--surface-1);
+    font-size: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+
+  .pf-tag:hover { border-color: #AFA9EC; color: #534AB7; background: #EEEDFE; }
+
+  .pf-attr-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .pf-attr-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .pf-attr-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+    width: 60px;
+  }
+
+  .pf-attr-chips {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .pf-chip {
+    padding: 3px 8px;
+    border: 0.5px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface-1);
+    font-size: 11px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.12s;
+    font-family: inherit;
+  }
+
+  .pf-chip:hover { border-color: var(--border-strong); }
+  .pf-chip.active { border-color: #7F77DD; color: #534AB7; background: #EEEDFE; }
+
+  .pf-result-block {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-height: 100px;
+    overflow-y: auto;
+  }
+
+  .pf-error { color: #A32D2D; font-size: 12px; padding: 8px; background: #FCEBEB; border-radius: 6px; }
+
+  @media (max-width: 560px) {
+    .pf-layout { grid-template-columns: 1fr; }
+  }
+</style>
+
+<h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">PixelFace — AI-powered avatar generator. Enter a persona description to generate a unique avatar.</h2>
+
+<div class="pf-root">
+  <div class="pf-header">
+    <div class="pf-logo" aria-hidden="true">
+      <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="10" cy="8" r="4.5" stroke="white" stroke-width="1.5"/>
+        <path d="M3 18c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div>
+      <div class="pf-title">PixelFace</div>
+      <div class="pf-sub">Prompt-based avatar generator</div>
+    </div>
+  </div>
+
+  <div class="pf-layout">
+    <div class="pf-left">
+      <div class="pf-canvas-wrap" id="canvasWrap">
+        <div class="pf-empty-state" id="emptyState">
+          <div class="pf-empty-icon">
+            <i class="ti ti-user" style="font-size:22px;color:var(--text-muted)" aria-hidden="true"></i>
+          </div>
+          <div>Describe a persona<br>to generate your avatar</div>
+        </div>
+        <div class="pf-loader" id="loader">
+          <div class="pf-spinner"></div>
+          <span id="loaderText">Generating avatar...</span>
+        </div>
+        <canvas id="avatarCanvas" width="320" height="320" style="display:none;max-width:100%;max-height:100%"></canvas>
+      </div>
+
+      <div class="pf-actions-row">
+        <button class="pf-btn primary" id="generateBtn" onclick="generate()">
+          <i class="ti ti-sparkles" aria-hidden="true"></i>
+          Generate avatar
+        </button>
+        <button class="pf-btn" id="downloadBtn" style="display:none" onclick="downloadAvatar()" title="Download avatar">
+          <i class="ti ti-download" aria-hidden="true"></i>
+        </button>
+        <button class="pf-btn" onclick="randomize()" title="Randomize traits">
+          <i class="ti ti-refresh" aria-hidden="true"></i>
+        </button>
+      </div>
+
+      <div class="pf-card" id="resultCard" style="display:none">
+        <div class="pf-card-label">AI persona summary</div>
+        <div class="pf-result-block" id="resultText"></div>
+      </div>
+
+      <div id="errorBlock" style="display:none" class="pf-error"></div>
+    </div>
+
+    <div class="pf-right">
+      <div class="pf-card">
+        <div class="pf-card-label">Persona prompt</div>
+        <div class="pf-prompt-wrap">
+          <textarea class="pf-prompt" id="promptInput" placeholder="e.g. A cyber-punk hacker with neon blue highlights, sharp jawline, intense eyes..." rows="4"></textarea>
+        </div>
+      </div>
+
+      <div class="pf-card">
+        <div class="pf-card-label">Style</div>
+        <div class="pf-styles">
+          <button class="pf-style-btn active" data-style="flat" onclick="selectStyle(this)">Flat vector</button>
+          <button class="pf-style-btn" data-style="pixel" onclick="selectStyle(this)">Pixel art</button>
+          <button class="pf-style-btn" data-style="geometric" onclick="selectStyle(this)">Geometric</button>
+          <button class="pf-style-btn" data-style="minimal" onclick="selectStyle(this)">Minimal line</button>
+        </div>
+      </div>
+
+      <div class="pf-card">
+        <div class="pf-card-label">Quick traits</div>
+        <div class="pf-tags" id="tagCloud">
+          <button class="pf-tag" onclick="addTag(this)">cyberpunk</button>
+          <button class="pf-tag" onclick="addTag(this)">fantasy elf</button>
+          <button class="pf-tag" onclick="addTag(this)">space captain</button>
+          <button class="pf-tag" onclick="addTag(this)">noir detective</button>
+          <button class="pf-tag" onclick="addTag(this)">AI android</button>
+          <button class="pf-tag" onclick="addTag(this)">pirate</button>
+          <button class="pf-tag" onclick="addTag(this)">scientist</button>
+          <button class="pf-tag" onclick="addTag(this)">warrior</button>
+        </div>
+      </div>
+
+      <div class="pf-card">
+        <div class="pf-card-label">Features</div>
+        <div class="pf-attr-grid">
+          <div class="pf-attr-row">
+            <span class="pf-attr-label">Hair</span>
+            <div class="pf-attr-chips" id="hair-chips">
+              <button class="pf-chip" data-group="hair" onclick="selectChip(this)">short</button>
+              <button class="pf-chip" data-group="hair" onclick="selectChip(this)">long</button>
+              <button class="pf-chip" data-group="hair" onclick="selectChip(this)">bald</button>
+              <button class="pf-chip" data-group="hair" onclick="selectChip(this)">wild</button>
+            </div>
+          </div>
+          <div class="pf-attr-row">
+            <span class="pf-attr-label">Eyes</span>
+            <div class="pf-attr-chips" id="eye-chips">
+              <button class="pf-chip" data-group="eyes" onclick="selectChip(this)">blue</button>
+              <button class="pf-chip" data-group="eyes" onclick="selectChip(this)">green</button>
+              <button class="pf-chip" data-group="eyes" onclick="selectChip(this)">brown</button>
+              <button class="pf-chip" data-group="eyes" onclick="selectChip(this)">glowing</button>
+            </div>
+          </div>
+          <div class="pf-attr-row">
+            <span class="pf-attr-label">Mood</span>
+            <div class="pf-attr-chips" id="mood-chips">
+              <button class="pf-chip" data-group="mood" onclick="selectChip(this)">serious</button>
+              <button class="pf-chip" data-group="mood" onclick="selectChip(this)">friendly</button>
+              <button class="pf-chip" data-group="mood" onclick="selectChip(this)">mysterious</button>
+              <button class="pf-chip" data-group="mood" onclick="selectChip(this)">fierce</button>
+            </div>
+          </div>
+          <div class="pf-attr-row">
+            <span class="pf-attr-label">Skin</span>
+            <div class="pf-attr-chips" id="skin-chips">
+              <button class="pf-chip" data-group="skin" onclick="selectChip(this)">light</button>
+              <button class="pf-chip" data-group="skin" onclick="selectChip(this)">medium</button>
+              <button class="pf-chip" data-group="skin" onclick="selectChip(this)">dark</button>
+              <button class="pf-chip" data-group="skin" onclick="selectChip(this)">alien</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let selectedStyle = 'flat';
+let selectedChips = {};
+let isGenerating = false;
+
+function selectStyle(btn) {
+  document.querySelectorAll('.pf-style-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedStyle = btn.dataset.style;
+}
+
+function selectChip(btn) {
+  const group = btn.dataset.group;
+  const wasActive = btn.classList.contains('active');
+  document.querySelectorAll(`.pf-chip[data-group="${group}"]`).forEach(c => c.classList.remove('active'));
+  if (!wasActive) { btn.classList.add('active'); selectedChips[group] = btn.textContent; }
+  else delete selectedChips[group];
+}
+
+function addTag(btn) {
+  const t = document.getElementById('promptInput');
+  const tag = btn.textContent;
+  t.value = t.value ? t.value.trimEnd() + ', ' + tag : tag;
+  t.focus();
+}
+
+function randomize() {
+  const tags = ['cyberpunk hacker', 'fantasy elf archer', 'space station captain', 'noir detective', 'ancient samurai', 'steam punk inventor', 'deep sea explorer', 'time traveler'];
+  const hairOpts = ['short', 'long', 'bald', 'wild'];
+  const eyeOpts = ['blue', 'green', 'brown', 'glowing'];
+  const moodOpts = ['serious', 'friendly', 'mysterious', 'fierce'];
+  const skinOpts = ['light', 'medium', 'dark', 'alien'];
+  document.getElementById('promptInput').value = tags[Math.floor(Math.random() * tags.length)];
+  document.querySelectorAll('.pf-chip').forEach(c => c.classList.remove('active'));
+  selectedChips = {};
+  const pick = (arr, group) => {
+    const v = arr[Math.floor(Math.random() * arr.length)];
+    selectedChips[group] = v;
+    document.querySelector(`.pf-chip[data-group="${group}"]`);
+    document.querySelectorAll(`.pf-chip[data-group="${group}"]`).forEach(c => { if(c.textContent === v) c.classList.add('active'); });
+  };
+  pick(hairOpts, 'hair'); pick(eyeOpts, 'eyes'); pick(moodOpts, 'mood'); pick(skinOpts, 'skin');
+}
+
+function buildPrompt() {
+  const base = document.getElementById('promptInput').value.trim();
+  const chips = Object.entries(selectedChips).map(([k,v]) => `${v} ${k}`).join(', ');
+  const stylePart = {flat:'flat vector art style',pixel:'pixel art 16-bit style',geometric:'geometric low-poly style',minimal:'minimal line art style'}[selectedStyle];
+  let full = base || 'a mysterious stranger';
+  if (chips) full += `, with ${chips}`;
+  full += `. Style: ${stylePart}. Avatar portrait, centered, square frame.`;
+  return full;
+}
+
+async function generate() {
+  if (isGenerating) return;
+  isGenerating = true;
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('avatarCanvas').style.display = 'none';
+  document.getElementById('downloadBtn').style.display = 'none';
+  document.getElementById('resultCard').style.display = 'none';
+  document.getElementById('errorBlock').style.display = 'none';
+  const loader = document.getElementById('loader');
+  loader.style.display = 'flex';
+
+  const msgs = ['Analyzing persona...', 'Crafting features...', 'Rendering avatar...'];
+  let mi = 0;
+  const lt = document.getElementById('loaderText');
+  const msgInt = setInterval(() => { lt.textContent = msgs[Math.min(mi++, msgs.length-1)]; }, 900);
+
+  const prompt = buildPrompt();
+
+  try {
+    const systemPrompt = `You are PixelFace, an avatar design AI. Given a persona description, return ONLY valid JSON (no markdown, no backticks) describing avatar visual attributes for canvas rendering.
+
+Return exactly this JSON schema:
+{
+  "bgColor": "#hex",
+  "bgAccent": "#hex",
+  "skinColor": "#hex",
+  "skinShadow": "#hex",
+  "hairColor": "#hex",
+  "hairStyle": "short|long|bald|wild|spiky|flowing",
+  "eyeColor": "#hex",
+  "eyeStyle": "normal|wide|narrow|glowing",
+  "eyebrowStyle": "normal|thick|arched|none",
+  "mouthStyle": "smile|neutral|smirk|grim",
+  "hasBeard": false,
+  "beardColor": "#hex",
+  "hasGlasses": false,
+  "glassesColor": "#hex",
+  "accessory": "none|scar|tattoo|earring|headband|visor|horns",
+  "accessoryColor": "#hex",
+  "neckItem": "none|collar|necklace|tie|scarf",
+  "neckColor": "#hex",
+  "patternType": "none|circuit|stars|tribal|flames",
+  "patternColor": "#hex",
+  "summary": "one sentence persona summary"
+}
+
+Choose colors that match the persona's vibe. Dark themes get dark backgrounds. Cyberpunk gets neons. Fantasy gets earthy tones. Be creative and specific.`;
+
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+    const apiEndpoint = isLocal ? 'http://127.0.0.1:8787' : 'https://pixelface-worker.aayushdeep979.workers.dev';
+
+    const res = await fetch(apiEndpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt,
+        systemPrompt
+      })
+    });
+
+    const text = await res.text();
+
+    console.log(text);
+
+    if (!res.ok) {
+      throw new Error(text);
+
+    } 
+    
+    const attrs = JSON.parse(text);
+
+    clearInterval(msgInt);
+    loader.style.display = 'none';
+
+    drawAvatar(attrs);
+
+    document.getElementById('resultText').textContent = attrs.summary || '';
+    document.getElementById('resultCard').style.display = 'block';
+    document.getElementById('downloadBtn').style.display = 'flex';
+  } catch(e) {
+    clearInterval(msgInt);
+    loader.style.display = 'none';
+    document.getElementById('emptyState').style.display = 'flex';
+    const eb = document.getElementById('errorBlock');
+    eb.style.display = 'block';
+    eb.textContent = 'Could not generate avatar: ' + e.message;
+    console.error(e);
+  }
+
+  isGenerating = false;
+  btn.disabled = false;
+}
+
+function drawAvatar(a) {
+  const canvas = document.getElementById('avatarCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = 320, H = 320;
+  ctx.clearRect(0, 0, W, H);
+
+  // Background
+  ctx.fillStyle = a.bgColor || '#1a1a2e';
+  ctx.fillRect(0, 0, W, H);
+
+  // BG accent glow
+  if (a.bgAccent && a.bgAccent !== a.bgColor) {
+    const g = ctx.createRadialGradient(W/2, H*0.4, 0, W/2, H*0.4, 120);
+    g.addColorStop(0, a.bgAccent + '33');
+    g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // Pattern overlay
+  if (a.patternType && a.patternType !== 'none') {
+    ctx.globalAlpha = 0.12;
+    drawPattern(ctx, a.patternType, a.patternColor || '#ffffff', W, H);
+    ctx.globalAlpha = 1;
+  }
+
+  const cx = W / 2, cy = H / 2;
+
+  // Neck
+  ctx.fillStyle = a.skinColor || '#e8b89a';
+  ctx.beginPath();
+  ctx.roundRect(cx - 22, cy + 48, 44, 55, 6);
+  ctx.fill();
+  ctx.fillStyle = a.skinShadow || '#d4a07a';
+  ctx.fillRect(cx - 8, cy + 48, 16, 30);
+
+  // Neck item
+  if (a.neckItem && a.neckItem !== 'none') {
+    drawNeckItem(ctx, a.neckItem, a.neckColor || '#888', cx, cy);
+  }
+
+  // Shoulders
+  ctx.fillStyle = darken(a.skinColor || '#e8b89a', 15);
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + 105, 80, 30, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Head
+  ctx.fillStyle = a.skinColor || '#e8b89a';
+  ctx.beginPath();
+  ctx.ellipse(cx, cy - 10, 78, 90, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Chin shadow
+  ctx.fillStyle = a.skinShadow || '#d4a07a';
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + 62, 40, 18, 0, 0, Math.PI);
+  ctx.fill();
+
+  // Ear
+  [-1,1].forEach(side => {
+    ctx.fillStyle = a.skinColor || '#e8b89a';
+    ctx.beginPath();
+    ctx.ellipse(cx + side * 78, cy + 5, 10, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Hair (back layer)
+  const hairColor = a.hairColor || '#4a3728';
+  if (a.hairStyle !== 'bald') {
+    drawHairBack(ctx, a.hairStyle || 'short', hairColor, cx, cy);
+  }
+
+  // Eyebrows
+  drawEyebrows(ctx, a.eyebrowStyle || 'normal', cx, cy);
+
+  // Eyes
+  drawEyes(ctx, a.eyeStyle || 'normal', a.eyeColor || '#4a9eff', cx, cy);
+
+  // Nose
+  ctx.strokeStyle = a.skinShadow || '#c9956e';
+  ctx.lineWidth = 1.8;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(cx - 7, cy + 8);
+  ctx.quadraticCurveTo(cx - 9, cy + 22, cx - 5, cy + 26);
+  ctx.moveTo(cx + 7, cy + 8);
+  ctx.quadraticCurveTo(cx + 9, cy + 22, cx + 5, cy + 26);
+  ctx.stroke();
+
+  // Mouth
+  drawMouth(ctx, a.mouthStyle || 'neutral', cx, cy);
+
+  // Beard
+  if (a.hasBeard) {
+    ctx.fillStyle = a.beardColor || hairColor;
+    ctx.globalAlpha = 0.85;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy + 55, 44, 28, 0, 0, Math.PI);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+
+  // Hair (front layer)
+  if (a.hairStyle !== 'bald') {
+    drawHairFront(ctx, a.hairStyle || 'short', hairColor, cx, cy);
+  }
+
+  // Glasses
+  if (a.hasGlasses) {
+    drawGlasses(ctx, a.glassesColor || '#333', cx, cy);
+  }
+
+  // Accessory
+  if (a.accessory && a.accessory !== 'none') {
+    drawAccessory(ctx, a.accessory, a.accessoryColor || '#ff6b6b', cx, cy);
+  }
+
+  canvas.style.display = 'block';
+}
+
+function drawPattern(ctx, type, color, W, H) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1;
+  if (type === 'circuit') {
+    for (let i = 0; i < 8; i++) {
+      const x = Math.random() * W, y = Math.random() * H;
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 40, y); ctx.lineTo(x + 40, y + 40); ctx.stroke();
+      ctx.beginPath(); ctx.arc(x + 40, y + 40, 3, 0, Math.PI*2); ctx.stroke();
+    }
+  } else if (type === 'stars') {
+    ctx.fillStyle = color;
+    for (let i = 0; i < 30; i++) {
+      ctx.beginPath(); ctx.arc(Math.random()*W, Math.random()*H, Math.random()*2+1, 0, Math.PI*2); ctx.fill();
+    }
+  } else if (type === 'tribal') {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2.5;
+    for (let i = 0; i < 5; i++) {
+      ctx.beginPath();
+      const y = H * (0.15 + i * 0.18);
+      ctx.moveTo(0, y);
+      ctx.bezierCurveTo(W * 0.25, y - 35, W * 0.75, y + 35, W, y);
+      ctx.stroke();
+    }
+  } else if (type === 'flames') {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(0, H);
+    for (let x = 0; x <= W; x += 40) {
+      ctx.lineTo(x, H - 40 - Math.random() * 45);
+      ctx.lineTo(x + 20, H);
+    }
+    ctx.closePath();
+    ctx.fill();
+  }
+}
+
+function drawHairBack(ctx, style, color, cx, cy) {
+  ctx.fillStyle = color;
+  if (style === 'long' || style === 'flowing') {
+    ctx.beginPath();
+    ctx.moveTo(cx - 78, cy - 10);
+    ctx.bezierCurveTo(cx - 95, cy + 60, cx - 85, cy + 130, cx - 60, cy + 140);
+    ctx.lineTo(cx + 60, cy + 140);
+    ctx.bezierCurveTo(cx + 85, cy + 130, cx + 95, cy + 60, cx + 78, cy - 10);
+    ctx.fill();
+  }
+}
+
+function drawHairFront(ctx, style, color, cx, cy) {
+  ctx.fillStyle = color;
+  const top = cy - 95;
+  if (style === 'short') {
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - 50, 80, 55, 0, Math.PI, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(cx - 80, cy - 50, 160, 18);
+  } else if (style === 'long' || style === 'flowing') {
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - 50, 80, 55, 0, Math.PI, Math.PI * 2);
+    ctx.fill();
+    ctx.fillRect(cx - 80, cy - 50, 160, 15);
+  } else if (style === 'wild' || style === 'spiky') {
+    ctx.beginPath();
+    const spikes = 9;
+    for (let i = 0; i < spikes; i++) {
+      const angle = Math.PI + (i / (spikes - 1)) * Math.PI;
+      const r = (i % 2 === 0) ? 95 : 72;
+      const x = cx + Math.cos(angle) * r * 0.9;
+      const y = (cy - 10) + Math.sin(angle) * r;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fill();
+  }
+}
+
+function drawEyebrows(ctx, style, cx, cy) {
+  if (style === 'none') return;
+  ctx.strokeStyle = '#2c2c2c';
+  ctx.lineWidth = style === 'thick' ? 5 : 3;
+  ctx.lineCap = 'round';
+  [[-30, 1], [30, -1]].forEach(([dx, flip]) => {
+    ctx.beginPath();
+    if (style === 'arched') {
+      ctx.moveTo(cx + dx - 18, cy - 42 + flip * 4);
+      ctx.quadraticCurveTo(cx + dx, cy - 50, cx + dx + 18, cy - 42 + flip * 4);
+    } else {
+      ctx.moveTo(cx + dx - 18, cy - 44 + flip * 3);
+      ctx.lineTo(cx + dx + 18, cy - 44 - flip * 3);
+    }
+    ctx.stroke();
+  });
+}
+
+function drawEyes(ctx, style, eyeColor, cx, cy) {
+  const eyeY = cy - 20;
+  [[cx - 30, -1], [cx + 30, 1]].forEach(([ex]) => {
+    const h = style === 'narrow' ? 9 : style === 'wide' ? 15 : 12;
+    // White
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.ellipse(ex, eyeY, 18, h, 0, 0, Math.PI * 2); ctx.fill();
+    // Iris
+    ctx.fillStyle = eyeColor;
+    ctx.beginPath(); ctx.ellipse(ex, eyeY, 11, h * 0.85, 0, 0, Math.PI * 2); ctx.fill();
+    // Pupil
+    ctx.fillStyle = '#111';
+    ctx.beginPath(); ctx.ellipse(ex, eyeY, 6, 6, 0, 0, Math.PI * 2); ctx.fill();
+    // Highlight
+    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+    ctx.beginPath(); ctx.ellipse(ex + 4, eyeY - 3, 3, 3, 0, 0, Math.PI * 2); ctx.fill();
+    // Glow
+    if (style === 'glowing') {
+      ctx.shadowColor = eyeColor; ctx.shadowBlur = 12;
+      ctx.fillStyle = eyeColor + 'aa';
+      ctx.beginPath(); ctx.ellipse(ex, eyeY, 20, h + 3, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+    // Eyelid line
+    ctx.strokeStyle = '#2c2c2c'; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(ex, eyeY, 18, h, 0, Math.PI, Math.PI * 2);
+    ctx.stroke();
+  });
+}
+
+function drawMouth(ctx, style, cx, cy) {
+  const my = cy + 38;
+  ctx.strokeStyle = '#8b4513'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+  ctx.beginPath();
+  if (style === 'smile') {
+    ctx.moveTo(cx - 22, my); ctx.quadraticCurveTo(cx, my + 16, cx + 22, my);
+  } else if (style === 'smirk') {
+    ctx.moveTo(cx - 20, my + 4); ctx.quadraticCurveTo(cx, my + 10, cx + 22, my - 4);
+  } else if (style === 'grim') {
+    ctx.moveTo(cx - 22, my + 4); ctx.quadraticCurveTo(cx, my - 4, cx + 22, my + 4);
+  } else {
+    ctx.moveTo(cx - 20, my); ctx.lineTo(cx + 20, my);
+  }
+  ctx.stroke();
+
+  // Lips
+  if (style === 'smile' || style === 'smirk') {
+    ctx.fillStyle = '#d2796a33';
+    ctx.beginPath();
+    if (style === 'smile') { ctx.moveTo(cx-22,my); ctx.quadraticCurveTo(cx, my+16, cx+22,my); ctx.quadraticCurveTo(cx, my+8, cx-22, my); }
+    else { ctx.moveTo(cx-20,my+4); ctx.quadraticCurveTo(cx,my+10,cx+22,my-4); ctx.quadraticCurveTo(cx,my+4,cx-20,my+4); }
+    ctx.fill();
+  }
+}
+
+function drawGlasses(ctx, color, cx, cy) {
+  ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+  const ey = cy - 20;
+  ctx.beginPath();
+  ctx.roundRect(cx - 52, ey - 14, 42, 28, 8); ctx.stroke();
+  ctx.beginPath();
+  ctx.roundRect(cx + 10, ey - 14, 42, 28, 8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx - 10, ey); ctx.lineTo(cx + 10, ey); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx - 52, ey); ctx.lineTo(cx - 80, ey + 8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx + 52, ey); ctx.lineTo(cx + 80, ey + 8); ctx.stroke();
+}
+
+function drawNeckItem(ctx, item, color, cx, cy) {
+  const ny = cy + 85;
+  if (item === 'collar') {
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.roundRect(cx - 28, ny - 10, 56, 16, 4); ctx.fill();
+  } else if (item === 'tie') {
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.moveTo(cx - 8, ny - 5); ctx.lineTo(cx + 8, ny - 5); ctx.lineTo(cx + 5, ny + 25); ctx.lineTo(cx - 5, ny + 25); ctx.closePath(); ctx.fill();
+  } else if (item === 'necklace') {
+    ctx.strokeStyle = color; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(cx, ny + 5, 22, 0.2, Math.PI - 0.2); ctx.stroke();
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(cx, ny + 27, 4, 0, Math.PI * 2); ctx.fill();
+  } else if (item === 'scarf') {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.roundRect(cx - 32, ny - 6, 64, 18, 9);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.roundRect(cx + 12, ny + 12, 16, 32, 5);
+    ctx.fill();
+  }
+}
+
+function drawAccessory(ctx, type, color, cx, cy) {
+  if (type === 'scar') {
+    ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 2; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(cx + 20, cy - 35); ctx.lineTo(cx + 35, cy - 10); ctx.stroke();
+  } else if (type === 'earring') {
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(cx + 79, cy + 12, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(cx + 79, cy + 8, 4, 0, Math.PI); ctx.stroke();
+  } else if (type === 'headband') {
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.ellipse(cx, cy - 75, 78, 15, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = lighten(color, 30);
+    ctx.beginPath(); ctx.ellipse(cx, cy - 78, 25, 8, 0, 0, Math.PI * 2); ctx.fill();
+  } else if (type === 'visor') {
+    ctx.fillStyle = color + 'bb';
+    ctx.beginPath(); ctx.ellipse(cx, cy - 48, 82, 18, 0, 0, Math.PI); ctx.fill();
+  } else if (type === 'horns') {
+    ctx.fillStyle = color;
+    [[-40, -1],[40, 1]].forEach(([dx, dir]) => {
+      ctx.beginPath(); ctx.moveTo(cx + dx, cy - 88); ctx.lineTo(cx + dx + dir*12, cy - 130); ctx.lineTo(cx + dx + dir*24, cy - 88); ctx.closePath(); ctx.fill();
+    });
+  } else if (type === 'tattoo') {
+    ctx.strokeStyle = color + 'aa'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(cx + 40, cy + 10); ctx.bezierCurveTo(cx + 55, cy, cx + 60, cy + 20, cx + 48, cy + 30); ctx.stroke();
+  }
+}
+
+function parseHex(hex) {
+  if (!hex || typeof hex !== 'string') return { r: 128, g: 128, b: 128 };
+  let s = hex.replace('#', '').trim();
+  if (s.length === 3) {
+    s = s[0] + s[0] + s[1] + s[1] + s[2] + s[2];
+  }
+  if (s.length !== 6) {
+    const colors = {
+      white: 'ffffff', black: '000000', red: 'ff0000', green: '00ff00', blue: '0000ff',
+      yellow: 'ffff00', magenta: 'ff00ff', cyan: '00ffff', gray: '808080', grey: '808080',
+      orange: 'ffa500', pink: 'ffc0cb', purple: '800080', brown: 'a52a2a', gold: 'ffd700'
+    };
+    s = colors[s.toLowerCase()] || '808080';
+  }
+  const num = parseInt(s, 16);
+  if (isNaN(num)) return { r: 128, g: 128, b: 128 };
+  return {
+    r: (num >> 16) & 0xff,
+    g: (num >> 8) & 0xff,
+    b: num & 0xff
+  };
+}
+
+function darken(hex, amt) {
+  const { r, g, b } = parseHex(hex);
+  const nr = Math.max(0, r - amt);
+  const ng = Math.max(0, g - amt);
+  const nb = Math.max(0, b - amt);
+  return '#' + [nr, ng, nb].map(v => v.toString(16).padStart(2, '0')).join('');
+}
+
+function lighten(hex, amt) {
+  const { r, g, b } = parseHex(hex);
+  const nr = Math.min(255, r + amt);
+  const ng = Math.min(255, g + amt);
+  const nb = Math.min(255, b + amt);
+  return '#' + [nr, ng, nb].map(v => v.toString(16).padStart(2, '0')).join('');
+}
+
+function downloadAvatar() {
+  const canvas = document.getElementById('avatarCanvas');
+  const link = document.createElement('a');
+  link.download = 'pixelface-avatar.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+</script>
